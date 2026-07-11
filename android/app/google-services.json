@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "901989847570",
+    "project_id": "explog-dec02",
+    "storage_bucket": "explog-dec02.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901989847570:android:28228b22842c8650d33ecb",
+        "android_client_info": {
+          "package_name": "in.co.explog.exlog"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCal-8Ib4Sz8VkDt6dfnNIRjEtEPveDYME"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
