@@ -6,9 +6,14 @@ import '../../../../core/constants/app_strings.dart';
 import '../../../../core/di/injection.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../categories/presentation/bloc/category_bloc.dart';
+import '../../../categories/presentation/pages/categories_page.dart';
 import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
-import '../../../../shared/widgets/coming_soon_page.dart';
+import '../../../reminders/presentation/bloc/reminder_bloc.dart';
+import '../../../reminders/presentation/pages/reminders_page.dart';
+import '../../../transactions/presentation/bloc/transaction_bloc.dart';
+import '../../../transactions/presentation/pages/transactions_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -50,16 +55,21 @@ class _HomePageState extends State<HomePage> {
 
   final List<Widget> _pages = const [
     DashboardPage(),
-    ComingSoonPage(title: AppStrings.transactions),
-    ComingSoonPage(title: AppStrings.categories),
-    ComingSoonPage(title: AppStrings.reminders),
+    TransactionsPage(),
+    CategoriesPage(),
+    RemindersPage(),
     _MorePage(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<DashboardBloc>(
-      create: (_) => sl<DashboardBloc>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<DashboardBloc>(create: (_) => sl<DashboardBloc>()),
+        BlocProvider<CategoryBloc>(create: (_) => sl<CategoryBloc>()),
+        BlocProvider<TransactionBloc>(create: (_) => sl<TransactionBloc>()),
+        BlocProvider<ReminderBloc>(create: (_) => sl<ReminderBloc>()),
+      ],
       child: Scaffold(
         body: IndexedStack(
           index: _currentIndex,

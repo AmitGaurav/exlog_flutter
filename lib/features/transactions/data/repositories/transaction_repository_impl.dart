@@ -1,0 +1,61 @@
+import 'package:cloud_firestore/cloud_firestore.dart' hide Transaction;
+import 'package:firebase_auth/firebase_auth.dart';
+
+import '../../domain/entities/transaction.dart';
+import '../../domain/repositories/transaction_repository.dart';
+
+class TransactionRepositoryImpl implements TransactionRepository {
+  final FirebaseFirestore _firestore;
+  final FirebaseAuth _auth;
+
+  TransactionRepositoryImpl({
+    required FirebaseFirestore firestore,
+    required FirebaseAuth auth,
+  })  : _firestore = firestore,
+        _auth = auth;
+
+  String get _uid {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) throw StateError('User not authenticated');
+    return uid;
+  }
+
+  CollectionReference<Map<String, dynamic>> get _col =>
+      _firestore.collection('transactions');
+
+  @override
+  Future<List<Transaction>> getTransactions() async {
+    final snapshot = await _col.where('userId', isEqualTo: _uid).get();
+
+    final transactions =
+        snapshot.docs.map((doc) => Transaction.fromFirestore(doc)).toList();
+
+    transactions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+
+    return transactions;
+  }
+
+  @override
+  Future<String> createTransaction(Transaction transaction) async {
+    final now = DateTime.now();
+    final data = transaction
+        .copyWith(userId: _uid, createdAt: now, updatedAt: now)
+        .toFirestore();
+    final docRef = await _col.add(data);
+    return docRef.id;
+  }
+
+  @override
+  Future<void> updateTransaction(Transaction transaction) async {
+    if (transaction.id == null) {
+      throw ArgumentError('Transaction id must not be null');
+    }
+    final data = transaction.copyWith(updatedAt: DateTime.now()).toFirestore();
+    await _col.doc(transaction.id).update(data);
+  }
+
+  @override
+  Future<void> deleteTransaction(String transactionId) async {
+    await _col.doc(transactionId).delete();
+  }
+}

@@ -31,4 +31,11 @@ class Validators {
     if (value.trim().length != 6) return 'Enter the 6-digit code';
     return null;
   }
+
+  static String? amount(String? value) {
+    if (value == null || value.trim().isEmpty) return 'Amount is required';
+    final parsed = double.tryParse(value.trim());
+    if (parsed == null || parsed <= 0) return 'Enter a valid amount';
+    return null;
+  }
 }
