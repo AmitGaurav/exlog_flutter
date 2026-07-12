@@ -27,4 +27,15 @@ abstract interface class AuthRepository {
   Future<void> sendPasswordResetEmail({required String email});
 
   Future<void> signOut();
+
+  /// Re-authenticates with [currentPassword] then updates to [newPassword].
+  /// Only meaningful for email/password accounts.
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+
+  /// Calls the shared `deleteUserAccount` Cloud Function (same one the iOS
+  /// app uses) to purge all user data, then signs out.
+  Future<void> deleteAccount();
 }

@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+import 'category_breakdown.dart';
+
 /// Mirrors the server-side `PeriodSummary` document maintained by the
 /// `aggregateTransaction` Cloud Function.
 /// Reads from `users/{uid}/summaries_monthly/{YYYY-MM}` or
@@ -13,7 +15,7 @@ class PeriodSummary extends Equatable {
   final double cashWithdrawalAmount;
   final double selfTransferAmount;
   final int totalCount;
-  final Map<String, double> byCategory;
+  final Map<String, CategoryBreakdown> byCategory;
   final Map<String, double> customTypes;
 
   const PeriodSummary({
@@ -46,10 +48,7 @@ class PeriodSummary extends Equatable {
 
     final rawCategory = (data['byCategory'] as Map<String, dynamic>?) ?? {};
     final byCategory = rawCategory.map(
-      (k, v) => MapEntry(
-        k,
-        ((v as Map<String, dynamic>?)?['amount'] as num?)?.toDouble() ?? 0.0,
-      ),
+      (k, v) => MapEntry(k, CategoryBreakdown.fromMap(k, (v as Map<String, dynamic>?) ?? {})),
     );
 
     final rawCustom = (data['customTypes'] as Map<String, dynamic>?) ?? {};

@@ -4,7 +4,9 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/di/injection.dart';
 import '../../../categories/presentation/bloc/category_bloc.dart';
+import '../../../more/domain/services/edit_restriction_checker.dart';
 import '../../domain/entities/transaction.dart';
 import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_event.dart';
@@ -17,7 +19,24 @@ class TransactionDetailPage extends StatelessWidget {
 
   const TransactionDetailPage({super.key, required this.transaction});
 
+  bool _checkEditable(BuildContext context, Transaction current) {
+    final checker = sl<EditRestrictionChecker>();
+    if (checker.isTransactionEditable(current)) return true;
+    showDialog<void>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Cannot Edit'),
+        content: Text(checker.getRestrictionMessage(current)),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+        ],
+      ),
+    );
+    return false;
+  }
+
   void _openEditSheet(BuildContext context, Transaction current) {
+    if (!_checkEditable(context, current)) return;
     final transactionBloc = context.read<TransactionBloc>();
     final categoryBloc = context.read<CategoryBloc>();
     showModalBottomSheet<void>(
@@ -36,6 +55,7 @@ class TransactionDetailPage extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context, Transaction current) {
+    if (!_checkEditable(context, current)) return;
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(

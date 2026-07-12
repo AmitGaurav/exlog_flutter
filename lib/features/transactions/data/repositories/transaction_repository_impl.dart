@@ -58,4 +58,36 @@ class TransactionRepositoryImpl implements TransactionRepository {
   Future<void> deleteTransaction(String transactionId) async {
     await _col.doc(transactionId).delete();
   }
+
+  @override
+  Future<Transaction?> findByTransactionReference(String reference) async {
+    final snapshot = await _col
+        .where('userId', isEqualTo: _uid)
+        .where('transactionReference', isEqualTo: reference)
+        .limit(1)
+        .get();
+    if (snapshot.docs.isEmpty) return null;
+    return Transaction.fromFirestore(snapshot.docs.first);
+  }
+
+  String get _currentUsagePeriod {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}';
+  }
+
+  DocumentReference<Map<String, dynamic>> get _usageDoc =>
+      _firestore.collection('users').doc(_uid).collection('usage').doc(_currentUsagePeriod);
+
+  @override
+  Future<int> getSmsImportUsageThisMonth() async {
+    final snapshot = await _usageDoc.get();
+    return (snapshot.data()?['smsImports'] as num?)?.toInt() ?? 0;
+  }
+
+  @override
+  Future<void> incrementSmsImportUsage() => _usageDoc.set({
+        'smsImports': FieldValue.increment(1),
+        'period': _currentUsagePeriod,
+        'lastUpdated': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 }

@@ -4,14 +4,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/di/injection.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../categories/presentation/bloc/category_bloc.dart';
 import '../../../categories/presentation/pages/categories_page.dart';
 import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
+import '../../../more/presentation/bloc/user_profile_bloc.dart';
+import '../../../more/presentation/pages/more_page.dart';
 import '../../../reminders/presentation/bloc/reminder_bloc.dart';
 import '../../../reminders/presentation/pages/reminders_page.dart';
+import '../../../transactions/domain/repositories/pending_sms_repository.dart';
 import '../../../transactions/presentation/bloc/transaction_bloc.dart';
 import '../../../transactions/presentation/pages/transactions_page.dart';
 
@@ -22,8 +23,30 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Android SMS auto-detect: process any newly-arrived inbox entries on
+    // cold start and whenever the app is foregrounded.
+    sl<PendingSmsRepository>().processInbox().catchError((_) {});
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      sl<PendingSmsRepository>().processInbox().catchError((_) {});
+    }
+  }
 
   static const List<_NavItem> _navItems = [
     _NavItem(
@@ -58,7 +81,7 @@ class _HomePageState extends State<HomePage> {
     TransactionsPage(),
     CategoriesPage(),
     RemindersPage(),
-    _MorePage(),
+    MorePage(),
   ];
 
   @override
@@ -69,6 +92,7 @@ class _HomePageState extends State<HomePage> {
         BlocProvider<CategoryBloc>(create: (_) => sl<CategoryBloc>()),
         BlocProvider<TransactionBloc>(create: (_) => sl<TransactionBloc>()),
         BlocProvider<ReminderBloc>(create: (_) => sl<ReminderBloc>()),
+        BlocProvider<UserProfileBloc>(create: (_) => sl<UserProfileBloc>()),
       ],
       child: Scaffold(
         body: IndexedStack(
@@ -114,43 +138,4 @@ class _NavItem {
     required this.icon,
     required this.activeIcon,
   });
-}
-
-/// The More tab with sign-out option.
-class _MorePage extends StatelessWidget {
-  const _MorePage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text(
-          AppStrings.more,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-      ),
-      body: ListView(
-        children: [
-          const SizedBox(height: 8),
-          ListTile(
-            leading: const Icon(Icons.logout_rounded, color: AppColors.expense),
-            title: const Text(
-              'Sign Out',
-              style: TextStyle(
-                color: AppColors.expense,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            onTap: () {
-              context.read<AuthBloc>().add(const AuthSignOutRequested());
-            },
-          ),
-        ],
-      ),
-    );
-  }
 }

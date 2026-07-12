@@ -4,9 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../transactions/presentation/bloc/transaction_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
+import '../widgets/analytics_content.dart';
+import '../widgets/category_breakdown_list.dart';
+import '../widgets/credit_transactions_list.dart';
 import '../widgets/greeting_card.dart';
 import '../widgets/mini_stat_card.dart';
 import '../widgets/period_tab_bar.dart';
@@ -60,7 +64,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(height: 16),
                   if (state.selectedTab == DashboardTab.analytics)
-                    _AnalyticsPlaceholder()
+                    AnalyticsContent(state: state)
                   else
                     _SummaryContent(
                       state: state,
@@ -137,6 +141,13 @@ class _SummaryContent extends StatelessWidget {
           isExpanded: expensesExpanded,
           onToggle: onToggleExpenses,
         ),
+        if (expensesExpanded) ...[
+          const SizedBox(height: 12),
+          CategoryBreakdownList(
+            byCategory: summary?.byCategory ?? const {},
+            kind: CategoryBreakdownKind.expense,
+          ),
+        ],
         const SizedBox(height: 12),
         // Mini cards row
         Row(
@@ -192,33 +203,28 @@ class _SummaryContent extends StatelessWidget {
           isExpanded: creditsExpanded,
           onToggle: onToggleCredits,
         ),
+        if (creditsExpanded) ...[
+          const SizedBox(height: 12),
+          Builder(
+            builder: (context) {
+              final (start, end) = _periodBounds(state.selectedTab);
+              return CreditTransactionsList(
+                allTransactions: context.watch<TransactionBloc>().state.transactions,
+                periodStart: start,
+                periodEnd: end,
+              );
+            },
+          ),
+        ],
       ],
     );
   }
-}
 
-class _AnalyticsPlaceholder extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 240,
-      decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.bar_chart_rounded, size: 56, color: AppColors.textTertiary),
-            SizedBox(height: 12),
-            Text(
-              'Analytics coming soon',
-              style: TextStyle(color: AppColors.textSecondary, fontSize: 15),
-            ),
-          ],
-        ),
-      ),
-    );
+  (DateTime, DateTime) _periodBounds(DashboardTab tab) {
+    final now = DateTime.now();
+    if (tab == DashboardTab.thisYear) {
+      return (DateTime(now.year), DateTime(now.year + 1));
+    }
+    return (DateTime(now.year, now.month), DateTime(now.year, now.month + 1));
   }
 }

@@ -38,6 +38,14 @@ dependencies:
   share_plus: ^10.1.2
   path_provider: ^2.1.4
 
+  # More section: external links + CSV import
+  url_launcher: ^6.3.1
+  file_picker: ^8.1.4
+
+  # SMS auto-import: AI parser HTTP calls + Android runtime permissions
+  http: ^1.2.2
+  permission_handler: ^11.3.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

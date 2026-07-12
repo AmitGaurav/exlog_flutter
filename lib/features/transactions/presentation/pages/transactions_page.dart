@@ -4,7 +4,10 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/di/injection.dart';
 import '../../../categories/presentation/bloc/category_bloc.dart';
+import '../../../more/domain/services/edit_restriction_checker.dart';
+import '../../../more/presentation/bloc/user_profile_bloc.dart';
 import '../../domain/entities/transaction.dart';
 import '../bloc/transaction_bloc.dart';
 import '../bloc/transaction_event.dart';
@@ -12,7 +15,11 @@ import '../bloc/transaction_state.dart';
 import '../widgets/add_edit_transaction_sheet.dart';
 import '../widgets/export_sheet.dart';
 import '../widgets/filter_sheet.dart';
+import '../widgets/import_sms_sheet.dart';
+import '../widgets/pending_sms_transactions_section.dart';
 import 'transaction_detail_page.dart';
+
+enum _AddMenuAction { manual, importSms }
 
 final _amountFormat = NumberFormat('#,##,##0.00');
 
@@ -86,6 +93,26 @@ class _TransactionsPageState extends State<TransactionsPage> {
     );
   }
 
+  void _openImportSmsSheet(BuildContext context) {
+    final transactionBloc = context.read<TransactionBloc>();
+    final categoryBloc = context.read<CategoryBloc>();
+    final userProfileBloc = context.read<UserProfileBloc>();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      useSafeArea: true,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: transactionBloc),
+          BlocProvider.value(value: categoryBloc),
+          BlocProvider.value(value: userProfileBloc),
+        ],
+        child: const ImportSmsSheet(),
+      ),
+    );
+  }
+
   void _openFilterSheet(BuildContext context, TransactionState state) {
     final transactionBloc = context.read<TransactionBloc>();
     final categoryBloc = context.read<CategoryBloc>();
@@ -131,6 +158,20 @@ class _TransactionsPageState extends State<TransactionsPage> {
   }
 
   void _confirmDelete(BuildContext context, Transaction transaction) {
+    final checker = sl<EditRestrictionChecker>();
+    if (!checker.isTransactionEditable(transaction)) {
+      showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Cannot Delete'),
+          content: Text(checker.getRestrictionMessage(transaction)),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('OK')),
+          ],
+        ),
+      );
+      return;
+    }
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
@@ -174,6 +215,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
             slivers: [
               _buildAppBar(context, state),
               SliverToBoxAdapter(child: _buildSearchAndFilters(context, state)),
+              const SliverToBoxAdapter(child: PendingSmsTransactionsSection()),
               if (state.status == TransactionStatus.loading)
                 const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator()),
@@ -195,20 +237,49 @@ class _TransactionsPageState extends State<TransactionsPage> {
     return SliverAppBar(
       backgroundColor: AppColors.backgroundGray,
       pinned: true,
-      expandedHeight: 96,
+      expandedHeight: 140,
       scrolledUnderElevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.ios_share, size: 22, color: AppColors.textPrimary),
         onPressed: () => _openExportSheet(context, state),
       ),
       actions: [
-        IconButton(
+        PopupMenuButton<_AddMenuAction>(
           icon: const Icon(Icons.add, size: 28, color: AppColors.textPrimary),
-          onPressed: () => _openAddSheet(context),
+          onSelected: (action) {
+            switch (action) {
+              case _AddMenuAction.manual:
+                _openAddSheet(context);
+              case _AddMenuAction.importSms:
+                _openImportSmsSheet(context);
+            }
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(
+              value: _AddMenuAction.manual,
+              child: Row(
+                children: [
+                  Icon(Icons.add_circle_outline, size: 20, color: AppColors.textPrimary),
+                  SizedBox(width: 12),
+                  Text('Add Manually'),
+                ],
+              ),
+            ),
+            PopupMenuItem(
+              value: _AddMenuAction.importSms,
+              child: Row(
+                children: [
+                  Icon(Icons.sms_outlined, size: 20, color: AppColors.textPrimary),
+                  SizedBox(width: 12),
+                  Text('Import from SMS'),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
       flexibleSpace: const FlexibleSpaceBar(
-        titlePadding: EdgeInsets.only(left: 16, bottom: 12),
+        titlePadding: EdgeInsets.only(left: 16, bottom: 16),
         title: Text(
           'Transactions',
           style: TextStyle(fontSize: 34, fontWeight: FontWeight.bold, color: AppColors.textPrimary),

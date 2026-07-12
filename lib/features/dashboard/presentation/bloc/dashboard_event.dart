@@ -20,3 +20,8 @@ class DashboardTabChanged extends DashboardEvent {
   @override
   List<Object?> get props => [tab];
 }
+
+/// Dispatched (once) when the Analytics tab is opened for the first time.
+class DashboardAnalyticsLoadRequested extends DashboardEvent {
+  const DashboardAnalyticsLoadRequested();
+}

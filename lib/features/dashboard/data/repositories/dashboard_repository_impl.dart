@@ -49,4 +49,19 @@ class DashboardRepositoryImpl implements DashboardRepository {
     }
     return PeriodSummary.fromFirestore(year, doc.data()!);
   }
+
+  @override
+  Future<List<PeriodSummary>> getMonthSummaries(List<String> periods) async {
+    final results = await Future.wait(periods.map((p) => getMonthSummary(period: p)));
+    return [
+      for (var i = 0; i < periods.length; i++)
+        results[i].period.isEmpty ? PeriodSummary(period: periods[i]) : results[i],
+    ];
+  }
+
+  @override
+  Future<List<PeriodSummary>> getYearSummaries(List<String> years) async {
+    final results = await Future.wait(years.map((y) => getYearSummary(year: y)));
+    return results.where((s) => s.period.isNotEmpty).toList();
+  }
 }

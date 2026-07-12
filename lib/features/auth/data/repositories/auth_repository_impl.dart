@@ -89,6 +89,28 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<void> signOut() => _auth.signOut();
 
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+    final email = user?.email;
+    if (user == null || email == null) {
+      throw StateError('Unable to verify account. Please sign out and sign in again.');
+    }
+    final credential = EmailAuthProvider.credential(email: email, password: currentPassword);
+    await user.reauthenticateWithCredential(credential);
+    await user.updatePassword(newPassword);
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    final callable = _functions.httpsCallable('deleteUserAccount');
+    await callable.call<dynamic>();
+    await _auth.signOut();
+  }
+
   AppUser _toAppUser(User user) => AppUser(
         uid: user.uid,
         email: user.email ?? '',
