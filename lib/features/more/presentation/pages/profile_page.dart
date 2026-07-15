@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/user_profile.dart';
 import '../bloc/user_profile_bloc.dart';
+import '../bloc/user_profile_event.dart';
 import '../bloc/user_profile_state.dart';
 import '../widgets/free_tier_upgrade_sheet.dart';
 
@@ -232,12 +233,20 @@ class _FreeTierContent extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (_) => const FreeTierUpgradeSheet(),
-              ),
+              onPressed: () async {
+                await showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => const FreeTierUpgradeSheet(),
+                );
+                // Refresh on close (harmless if no purchase happened) so a
+                // successful purchase's server-written premiumTier shows up
+                // without requiring an app restart.
+                if (context.mounted) {
+                  context.read<UserProfileBloc>().add(const UserProfileLoadRequested());
+                }
+              },
               icon: const Icon(Icons.workspace_premium, size: 18),
               label: const Text('Upgrade to Premium', style: TextStyle(fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(

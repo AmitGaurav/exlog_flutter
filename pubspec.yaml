@@ -46,6 +46,10 @@ dependencies:
   http: ^1.2.2
   permission_handler: ^11.3.1
 
+  # Google Play Billing (subscriptions + one-time lifetime purchase)
+  in_app_purchase: ^3.2.0
+  in_app_purchase_android: ^0.5.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
@@ -15,11 +16,13 @@ import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/more/data/repositories/admin_repository_impl.dart';
 import '../../features/more/data/repositories/payee_mapping_repository_impl.dart';
+import '../../features/more/data/repositories/purchase_repository_impl.dart';
 import '../../features/more/data/repositories/rating_repository_impl.dart';
 import '../../features/more/data/repositories/transaction_type_repository_impl.dart';
 import '../../features/more/data/repositories/user_profile_repository_impl.dart';
 import '../../features/more/domain/repositories/admin_repository.dart';
 import '../../features/more/domain/repositories/payee_mapping_repository.dart';
+import '../../features/more/domain/repositories/purchase_repository.dart';
 import '../../features/more/domain/repositories/rating_repository.dart';
 import '../../features/more/domain/repositories/transaction_type_repository.dart';
 import '../../features/more/domain/repositories/user_profile_repository.dart';
@@ -118,6 +121,13 @@ Future<void> setupDependencies() async {
 
   sl.registerLazySingleton<AdminRepository>(
     () => AdminRepositoryImpl(firestore: sl<FirebaseFirestore>()),
+  );
+
+  sl.registerLazySingleton<PurchaseRepository>(
+    () => PurchaseRepositoryImpl(
+      iap: InAppPurchase.instance,
+      functions: sl<FirebaseFunctions>(),
+    ),
   );
 
   sl.registerLazySingleton<PendingSmsRepository>(

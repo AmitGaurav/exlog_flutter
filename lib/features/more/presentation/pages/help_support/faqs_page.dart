@@ -36,7 +36,7 @@ class _FAQsPageState extends State<FAQsPage> {
     (
       "What's the difference between Free and Premium?",
       'Free tier includes: 10 SMS imports/month, 5 exports/month, 3 active reminders, and 5 custom categories. '
-          'Premium (₹99/month, ₹999/year, or ₹4,999 lifetime) offers unlimited access to all features including '
+          'Premium (₹49/month, ₹299/year, or ₹799 lifetime) offers unlimited access to all features including '
           'unlimited imports, exports, reminders, categories, and priority support.',
     ),
     (

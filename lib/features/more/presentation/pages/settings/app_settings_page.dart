@@ -10,6 +10,7 @@ import '../../../domain/entities/user_profile.dart';
 import '../../bloc/payee_mapping_bloc.dart';
 import '../../bloc/transaction_type_bloc.dart';
 import '../../bloc/user_profile_bloc.dart';
+import '../../bloc/user_profile_event.dart';
 import '../../bloc/user_profile_state.dart';
 import '../../widgets/free_tier_upgrade_sheet.dart';
 import '../../widgets/sms_auto_detect_row.dart';
@@ -308,12 +309,20 @@ class _SubscriptionRow extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           onTap: isPremium
               ? null
-              : () => showModalBottomSheet<void>(
+              : () async {
+                  await showModalBottomSheet<void>(
                     context: context,
                     isScrollControlled: true,
                     backgroundColor: Colors.transparent,
                     builder: (_) => const FreeTierUpgradeSheet(),
-                  ),
+                  );
+                  // Refresh on close (harmless if no purchase happened) so a
+                  // successful purchase's server-written premiumTier shows up
+                  // without requiring an app restart.
+                  if (context.mounted) {
+                    context.read<UserProfileBloc>().add(const UserProfileLoadRequested());
+                  }
+                },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             child: Row(
