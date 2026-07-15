@@ -598,17 +598,25 @@ class _TransactionTile extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         if (transaction.categoryName != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withAlpha(30),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              transaction.categoryName!,
-                              style: const TextStyle(fontSize: 12, color: AppColors.primary),
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withAlpha(30),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              // Long category names (e.g. "Car Maintenance") wrap
+                              // to a second line instead of forcing this row to
+                              // overflow — matches iOS.
+                              child: Text(
+                                transaction.categoryName!,
+                                style: const TextStyle(fontSize: 12, color: AppColors.primary),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ),
                         const SizedBox(width: 8),
