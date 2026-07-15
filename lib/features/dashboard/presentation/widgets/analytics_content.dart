@@ -321,10 +321,18 @@ class _MonthlyExpensesIncome extends StatelessWidget {
         ],
         const Divider(height: 24, color: AppColors.divider),
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _FooterDot(color: AppColors.expense, label: 'Spent: ₹${_amountFormat.format(overview.totalSpent)}'),
             const SizedBox(width: 14),
-            _FooterDot(color: AppColors.income, label: 'Earned: ₹${_amountFormat.format(overview.totalEarned)}'),
+            // Stacked (label above value) rather than inline — a large
+            // credit total (e.g. ₹3,50,400) otherwise overflows this row
+            // on narrower Android widths; matches the iOS layout.
+            _FooterDotStacked(
+              color: AppColors.income,
+              label: 'Earned:',
+              value: '₹${_amountFormat.format(overview.totalEarned)}',
+            ),
             const Spacer(),
             Text('Net: ₹${_amountFormat.format(overview.totalNet)}',
                 style: TextStyle(
@@ -351,6 +359,35 @@ class _FooterDot extends StatelessWidget {
         Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 6),
         Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+      ],
+    );
+  }
+}
+
+class _FooterDotStacked extends StatelessWidget {
+  final Color color;
+  final String label;
+  final String value;
+  const _FooterDotStacked({required this.color, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 3),
+          child: Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        ),
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+            Text(value, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+          ],
+        ),
       ],
     );
   }

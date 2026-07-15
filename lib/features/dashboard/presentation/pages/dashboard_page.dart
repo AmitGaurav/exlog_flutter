@@ -4,13 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../transactions/presentation/bloc/transaction_bloc.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/dashboard_event.dart';
 import '../bloc/dashboard_state.dart';
 import '../widgets/analytics_content.dart';
 import '../widgets/category_breakdown_list.dart';
-import '../widgets/credit_transactions_list.dart';
 import '../widgets/greeting_card.dart';
 import '../widgets/mini_stat_card.dart';
 import '../widgets/period_tab_bar.dart';
@@ -205,26 +203,12 @@ class _SummaryContent extends StatelessWidget {
         ),
         if (creditsExpanded) ...[
           const SizedBox(height: 12),
-          Builder(
-            builder: (context) {
-              final (start, end) = _periodBounds(state.selectedTab);
-              return CreditTransactionsList(
-                allTransactions: context.watch<TransactionBloc>().state.transactions,
-                periodStart: start,
-                periodEnd: end,
-              );
-            },
+          CategoryBreakdownList(
+            byCategory: summary?.byCategory ?? const {},
+            kind: CategoryBreakdownKind.credit,
           ),
         ],
       ],
     );
-  }
-
-  (DateTime, DateTime) _periodBounds(DashboardTab tab) {
-    final now = DateTime.now();
-    if (tab == DashboardTab.thisYear) {
-      return (DateTime(now.year), DateTime(now.year + 1));
-    }
-    return (DateTime(now.year, now.month), DateTime(now.year, now.month + 1));
   }
 }
