@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/services/app_config_service.dart';
 import '../../../categories/domain/entities/category.dart' show Category;
 import '../../../categories/presentation/bloc/category_bloc.dart';
 import '../../domain/entities/reminder.dart';
@@ -190,8 +191,15 @@ class _AddReminderSheetState extends State<AddReminderSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const _FreeTierBanner(),
-                    const SizedBox(height: 20),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: sl<AppConfigService>().freeForAll,
+                      builder: (context, freeForAll, _) => freeForAll
+                          ? const SizedBox.shrink()
+                          : const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [_FreeTierBanner(), SizedBox(height: 20)],
+                            ),
+                    ),
                     const _SectionLabel('Reminder Details'),
                     const SizedBox(height: 8),
                     _ReminderDetailsCard(

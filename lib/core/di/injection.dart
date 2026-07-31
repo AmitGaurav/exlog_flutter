@@ -40,6 +40,7 @@ import '../../features/transactions/data/repositories/transaction_repository_imp
 import '../../features/transactions/domain/repositories/pending_sms_repository.dart';
 import '../../features/transactions/domain/repositories/transaction_repository.dart';
 import '../../features/transactions/presentation/bloc/transaction_bloc.dart';
+import '../services/app_config_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -53,6 +54,7 @@ Future<void> setupDependencies() async {
   final prefs = await SharedPreferences.getInstance();
   sl.registerLazySingleton<SharedPreferences>(() => prefs);
   sl.registerLazySingleton<EditRestrictionChecker>(() => EditRestrictionChecker(sl<SharedPreferences>()));
+  sl.registerLazySingleton<AppConfigService>(() => AppConfigService(sl<FirebaseFirestore>(), sl<SharedPreferences>()));
 
   // ─── Repositories ────────────────────────────────────────────
   sl.registerLazySingleton<AuthRepository>(

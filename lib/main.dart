@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import 'core/di/injection.dart';
 import 'core/router/app_router.dart';
+import 'core/services/app_config_service.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
@@ -14,6 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await setupDependencies();
+  sl<AppConfigService>().listen();
   runApp(const ExLogApp());
 }
 

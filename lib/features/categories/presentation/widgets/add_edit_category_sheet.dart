@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_text_styles.dart';
+import '../../../../../core/di/injection.dart';
+import '../../../../../core/services/app_config_service.dart';
 import '../../domain/entities/category.dart';
 import '../bloc/category_bloc.dart';
 import '../bloc/category_event.dart';
@@ -131,8 +133,15 @@ class _AddEditCategorySheetState extends State<AddEditCategorySheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _FreeTierBanner(),
-                    const SizedBox(height: 20),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: sl<AppConfigService>().freeForAll,
+                      builder: (context, freeForAll, _) => freeForAll
+                          ? const SizedBox.shrink()
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [_FreeTierBanner(), const SizedBox(height: 20)],
+                            ),
+                    ),
                     _SectionLabel('Category Information'),
                     const SizedBox(height: 8),
                     _CategoryInfoCard(

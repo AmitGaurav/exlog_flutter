@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/di/injection.dart';
+import '../../../../core/services/app_config_service.dart';
 import '../../domain/entities/admin_stats.dart';
 import '../../domain/entities/app_rating.dart';
 import '../../domain/entities/user_profile.dart';
@@ -55,6 +56,8 @@ class _AdminDashboardView extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 _StatisticsSection(stats: state.stats),
+                const SizedBox(height: 20),
+                const _AppConfigSection(),
                 const SizedBox(height: 20),
                 _RatingsSection(ratingStats: state.ratingStats, recentRatings: state.recentRatings),
                 const SizedBox(height: 20),
@@ -110,6 +113,67 @@ class _StatisticsSection extends StatelessWidget {
                 ),
               ),
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// Lets an admin flip the app-wide "free for everyone" flag back off,
+/// restoring the original Upgrade-to-Premium prompts and free-tier limit
+/// banners for every user — without a new app release (see
+/// AppConfigService / app_config/global in Firestore).
+class _AppConfigSection extends StatelessWidget {
+  const _AppConfigSection();
+
+  Future<void> _confirmToggle(BuildContext context, bool newValue) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Confirm Change'),
+        content: Text(
+          newValue
+              ? 'Make ExLog free for everyone? This hides all Upgrade-to-Premium prompts and limits app-wide.'
+              : 'Restore premium restrictions for all free-tier users? This brings back Upgrade-to-Premium prompts and limits app-wide.',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.expense),
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await sl<AppConfigService>().setFreeForAll(newValue);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('App Configuration', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)),
+          child: ValueListenableBuilder<bool>(
+            valueListenable: sl<AppConfigService>().freeForAll,
+            builder: (context, freeForAll, _) => SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Free for everyone', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+              subtitle: const Text(
+                'When on, all users get full access with no Upgrade-to-Premium prompts.',
+                style: TextStyle(fontSize: 12),
+              ),
+              value: freeForAll,
+              onChanged: (v) => _confirmToggle(context, v),
+            ),
+          ),
         ),
       ],
     );

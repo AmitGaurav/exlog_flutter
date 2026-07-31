@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/di/injection.dart';
+import '../../../../../core/services/app_config_service.dart';
 import '../../../../auth/domain/repositories/auth_repository.dart';
 import '../../../../categories/presentation/bloc/category_bloc.dart';
 import '../../../domain/entities/user_profile.dart';
@@ -12,6 +13,7 @@ import '../../bloc/transaction_type_bloc.dart';
 import '../../bloc/user_profile_bloc.dart';
 import '../../bloc/user_profile_event.dart';
 import '../../bloc/user_profile_state.dart';
+import '../../widgets/buy_me_a_coffee_sheet.dart';
 import '../../widgets/free_tier_upgrade_sheet.dart';
 import '../../widgets/sms_auto_detect_row.dart';
 import '../admin_dashboard_page.dart';
@@ -301,56 +303,75 @@ class _SubscriptionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPremium = profile?.premiumTier.isPremium ?? false;
-    return Container(
-      decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: isPremium
-              ? null
-              : () async {
-                  await showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (_) => const FreeTierUpgradeSheet(),
-                  );
-                  // Refresh on close (harmless if no purchase happened) so a
-                  // successful purchase's server-written premiumTier shows up
-                  // without requiring an app restart.
-                  if (context.mounted) {
-                    context.read<UserProfileBloc>().add(const UserProfileLoadRequested());
-                  }
-                },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            child: Row(
-              children: [
-                Icon(Icons.workspace_premium, color: const Color(0xFFFFCC00), size: 26),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(isPremium ? '${profile!.premiumTier.displayName} Active' : 'Upgrade to Premium',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                      Text(
-                        isPremium ? 'Full access to all features' : 'Unlock unlimited imports, exports & more',
-                        style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+    return ValueListenableBuilder<bool>(
+      valueListenable: sl<AppConfigService>().freeForAll,
+      builder: (context, freeForAll, _) {
+        final showCoffeeAppeal = !isPremium && freeForAll;
+        return Container(
+          decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: isPremium
+                  ? null
+                  : () async {
+                      await showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) =>
+                            showCoffeeAppeal ? const BuyMeACoffeeSheet() : const FreeTierUpgradeSheet(),
+                      );
+                      // Refresh on close (harmless if no purchase happened) so a
+                      // successful purchase's server-written premiumTier shows up
+                      // without requiring an app restart.
+                      if (context.mounted) {
+                        context.read<UserProfileBloc>().add(const UserProfileLoadRequested());
+                      }
+                    },
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                child: Row(
+                  children: [
+                    Icon(
+                      showCoffeeAppeal ? Icons.favorite_border : Icons.workspace_premium,
+                      color: const Color(0xFFFFCC00),
+                      size: 26,
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isPremium
+                                ? '${profile!.premiumTier.displayName} Active'
+                                : (showCoffeeAppeal ? 'ExLog is Free' : 'Upgrade to Premium'),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                          ),
+                          Text(
+                            isPremium
+                                ? 'Full access to all features'
+                                : (showCoffeeAppeal
+                                    ? 'No limits. Enjoying it? Buy me a coffee ☕'
+                                    : 'Unlock unlimited imports, exports & more'),
+                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Icon(
+                      isPremium ? Icons.check_circle : Icons.chevron_right,
+                      color: isPremium ? AppColors.income : AppColors.textTertiary,
+                    ),
+                  ],
                 ),
-                Icon(
-                  isPremium ? Icons.check_circle : Icons.chevron_right,
-                  color: isPremium ? AppColors.income : AppColors.textTertiary,
-                ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

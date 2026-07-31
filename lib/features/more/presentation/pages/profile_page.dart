@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/services/app_config_service.dart';
 import '../../domain/entities/user_profile.dart';
 import '../bloc/user_profile_bloc.dart';
 import '../bloc/user_profile_event.dart';
 import '../bloc/user_profile_state.dart';
+import '../widgets/buy_me_a_coffee_sheet.dart';
 import '../widgets/free_tier_upgrade_sheet.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -60,11 +63,14 @@ class ProfilePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              _CardSection(
-                title: 'Subscription Status',
-                child: profile.premiumTier.isPremium
-                    ? _PremiumActiveContent(profile: profile)
-                    : _FreeTierContent(),
+              ValueListenableBuilder<bool>(
+                valueListenable: sl<AppConfigService>().freeForAll,
+                builder: (context, freeForAll, _) => _CardSection(
+                  title: 'Subscription Status',
+                  child: profile.premiumTier.isPremium
+                      ? _PremiumActiveContent(profile: profile)
+                      : (freeForAll ? const _FreeAppContent() : _FreeTierContent()),
+                ),
               ),
               const SizedBox(height: 16),
               _CardSection(
@@ -171,6 +177,18 @@ class _PremiumActiveContent extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _FreeAppContent extends StatelessWidget {
+  const _FreeAppContent();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Padding(
+      padding: EdgeInsets.all(16),
+      child: BuyMeACoffeeContent(),
     );
   }
 }
