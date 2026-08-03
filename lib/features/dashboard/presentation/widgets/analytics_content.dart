@@ -334,11 +334,27 @@ class _MonthlyExpensesIncome extends StatelessWidget {
               value: '₹${_amountFormat.format(overview.totalEarned)}',
             ),
             const Spacer(),
-            Text('Net: ₹${_amountFormat.format(overview.totalNet)}',
-                style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: overview.totalNet >= 0 ? AppColors.income : AppColors.expense)),
+            // Stacked (label above value), same reasoning as Earned above —
+            // a large net total inline with "Net: " otherwise overflows
+            // this row on narrower Android widths.
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('Net:',
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: overview.totalNet >= 0 ? AppColors.income : AppColors.expense)),
+                  Text('₹${_amountFormat.format(overview.totalNet)}',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: overview.totalNet >= 0 ? AppColors.income : AppColors.expense)),
+                ],
+              ),
+            ),
           ],
         ),
       ],

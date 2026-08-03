@@ -28,6 +28,7 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
   final _amountController = TextEditingController();
   final _payeeController = TextEditingController();
   final _notesController = TextEditingController();
+  final _notesFieldKey = GlobalKey();
 
   late TransactionType _selectedType;
   late DateTime _selectedDate;
@@ -75,6 +76,27 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
     _payeeController.dispose();
     _notesController.dispose();
     super.dispose();
+  }
+
+  // The sheet's own SingleChildScrollView doesn't reliably auto-scroll a
+  // newly-focused field above the keyboard here (likely due to the nested
+  // Flexible/mainAxisSize.min layout confusing Flutter's default
+  // showOnScreen heuristic), so the Notes field — the one most likely to
+  // end up hidden behind the keyboard — gets an explicit nudge once the
+  // keyboard animation has settled.
+  void _scrollNotesIntoView() {
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      final ctx = _notesFieldKey.currentContext;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.2,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
   String _formatAmount(double amount) =>
@@ -161,7 +183,17 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
           if (Navigator.of(context).canPop()) Navigator.of(context).pop();
         }
       },
-      child: Container(
+      child: Padding(
+        // The modal route's own keyboard-avoidance padding isn't reliably
+        // shrinking this sheet's layout (confirmed: Scrollable.ensureVisible
+        // finds nothing to scroll because the viewport still thinks it has
+        // the full un-shrunk height), so the keyboard inset is applied here
+        // explicitly instead of relying on that.
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Container(
         decoration: const BoxDecoration(
           color: AppColors.backgroundGray,
           borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
@@ -177,6 +209,7 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
             ),
             Flexible(
               child: SingleChildScrollView(
+                keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,6 +220,7 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
                     _TransactionDetailsCard(
                       amountController: _amountController,
                       payeeController: _payeeController,
+                      autofocusAmount: !_isEdit,
                       amountError: _amountError,
                       payeeError: _payeeError,
                       selectedType: _selectedType,
@@ -220,7 +254,11 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    _NotesCard(controller: _notesController),
+                    _NotesCard(
+                      key: _notesFieldKey,
+                      controller: _notesController,
+                      onTap: _scrollNotesIntoView,
+                    ),
                     if (_notesError != null) ...[
                       const SizedBox(height: 8),
                       Text(
@@ -234,6 +272,8 @@ class _AddEditTransactionSheetState extends State<AddEditTransactionSheet> {
             ),
           ],
         ),
+        ),
+      ),
       ),
     );
   }
@@ -336,6 +376,7 @@ class _SectionLabel extends StatelessWidget {
 class _TransactionDetailsCard extends StatelessWidget {
   final TextEditingController amountController;
   final TextEditingController payeeController;
+  final bool autofocusAmount;
   final String? amountError;
   final String? payeeError;
   final TransactionType selectedType;
@@ -348,6 +389,7 @@ class _TransactionDetailsCard extends StatelessWidget {
   const _TransactionDetailsCard({
     required this.amountController,
     required this.payeeController,
+    required this.autofocusAmount,
     required this.amountError,
     required this.payeeError,
     required this.selectedType,
@@ -371,7 +413,7 @@ class _TransactionDetailsCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
             child: TextField(
               controller: amountController,
-              autofocus: true,
+              autofocus: autofocusAmount,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: AppTextStyles.body,
               decoration: InputDecoration(
@@ -634,7 +676,8 @@ class _CategoryRow extends StatelessWidget {
 
 class _NotesCard extends StatelessWidget {
   final TextEditingController controller;
-  const _NotesCard({required this.controller});
+  final VoidCallback? onTap;
+  const _NotesCard({super.key, required this.controller, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -648,6 +691,7 @@ class _NotesCard extends StatelessWidget {
         controller: controller,
         minLines: 3,
         maxLines: 5,
+        onTap: onTap,
         style: AppTextStyles.body,
         decoration: InputDecoration(
           border: InputBorder.none,
