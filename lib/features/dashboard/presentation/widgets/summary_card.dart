@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+
+final _amountFormat = NumberFormat('#,##,##0.00');
 
 /// Large expandable summary card (Total Expenses / Credits).
 class SummaryCard extends StatefulWidget {
@@ -28,12 +31,7 @@ class SummaryCard extends StatefulWidget {
 }
 
 class _SummaryCardState extends State<SummaryCard> {
-  String _formatAmount(double amount) {
-    if (amount == amount.truncate()) {
-      return '${widget.currency}${amount.toStringAsFixed(2)}';
-    }
-    return '${widget.currency}${amount.toStringAsFixed(2)}';
-  }
+  String _formatAmount(double amount) => '${widget.currency}${_amountFormat.format(amount)}';
 
   @override
   Widget build(BuildContext context) {

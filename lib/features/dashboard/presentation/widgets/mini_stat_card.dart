@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+
+final _amountFormat = NumberFormat('#,##,##0.00');
 
 /// Small stat card for Cash Withdrawals / Self Transfers.
 class MiniStatCard extends StatelessWidget {
@@ -17,10 +20,7 @@ class MiniStatCard extends StatelessWidget {
     required this.icon,
   });
 
-  String _formatAmount(double v) {
-    if (v == v.truncate()) return '$currency${v.toInt()}';
-    return '$currency${v.toStringAsFixed(2)}';
-  }
+  String _formatAmount(double v) => '$currency${_amountFormat.format(v)}';
 
   @override
   Widget build(BuildContext context) {

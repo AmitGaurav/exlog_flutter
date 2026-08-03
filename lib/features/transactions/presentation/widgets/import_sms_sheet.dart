@@ -102,7 +102,7 @@ class _ImportSmsSheetState extends State<ImportSmsSheet> {
             _errorMessage = '⚠️ Duplicate Transaction Detected\n\n'
                 'Transaction ID: ${parsed.transactionReference}\n\n'
                 'This transaction is already saved in the database.\n'
-                '• Amount: ₹${existing.amount.toStringAsFixed(2)}\n'
+                '• Amount: ₹${NumberFormat('#,##,##0.00').format(existing.amount)}\n'
                 '• Payee: ${existing.payee}\n'
                 '• Date: ${fmt.format(existing.timestamp)}\n\n'
                 'The same transaction cannot be added twice.';
