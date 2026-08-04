@@ -192,16 +192,19 @@ class _DetailCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(rows[i].label, style: const TextStyle(fontSize: 16, color: AppColors.textSecondary)),
+                  const SizedBox(width: 12),
                   Expanded(
-                    child: Text(rows[i].label, style: const TextStyle(fontSize: 16, color: AppColors.textSecondary)),
-                  ),
-                  Text(
-                    rows[i].value,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: rows[i].valueColor ?? AppColors.textPrimary,
+                    child: Text(
+                      rows[i].value,
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: rows[i].valueColor ?? AppColors.textPrimary,
+                      ),
                     ),
                   ),
                 ],
