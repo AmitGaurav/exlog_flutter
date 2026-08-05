@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,27 +27,46 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   int _currentIndex = 0;
+  Timer? _smsPollTimer;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     // Android SMS auto-detect: process any newly-arrived inbox entries on
-    // cold start and whenever the app is foregrounded.
-    sl<PendingSmsRepository>().processInbox().catchError((_) {});
+    // cold start, whenever the app is foregrounded, and periodically while
+    // it stays open — processInbox() only picks up SMS that arrived since
+    // the last call, so without polling, an SMS received during an
+    // already-open session would sit unprocessed until the next
+    // background/foreground cycle.
+    _processInbox();
+    _startSmsPolling();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _smsPollTimer?.cancel();
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      sl<PendingSmsRepository>().processInbox().catchError((_) {});
+      _processInbox();
+      _startSmsPolling();
+    } else {
+      _smsPollTimer?.cancel();
     }
+  }
+
+  void _startSmsPolling() {
+    _smsPollTimer?.cancel();
+    _smsPollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _processInbox());
+  }
+
+  void _processInbox() {
+    sl<PendingSmsRepository>().processInbox().catchError((_) {});
   }
 
   static const List<_NavItem> _navItems = [
