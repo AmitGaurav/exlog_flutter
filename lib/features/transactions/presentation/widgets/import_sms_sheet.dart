@@ -305,35 +305,43 @@ class _ImportSmsSheetState extends State<ImportSmsSheet> {
                         child: Text(_successMessage!, style: const TextStyle(color: AppColors.income, fontSize: 13)),
                       ),
                     ],
-                    const SizedBox(height: 20),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text('Cancel'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: (_controller.text.trim().isEmpty || _isProcessing) ? null : _process,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: _isProcessing
-                                ? const SizedBox(
-                                    width: 18, height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                  )
-                                : const Text('Create Transaction'),
-                          ),
-                        ),
-                      ],
-                    ),
                   ],
                 ),
+              ),
+            ),
+            // Fixed footer (outside the scroll area, not inline at the end of
+            // the SMS text content) so Cancel/Create Transaction stay visible
+            // above the keyboard instead of requiring a scroll to reach them
+            // — the sheet's own keyboard-avoidance wasn't reliably shrinking
+            // this DraggableScrollableSheet, so the inset is applied here
+            // explicitly, same as the Edit Transaction sheet fix.
+            Padding(
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.of(context).viewInsets.bottom),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: (_controller.text.trim().isEmpty || _isProcessing) ? null : _process,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: _isProcessing
+                          ? const SizedBox(
+                              width: 18, height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Text('Create Transaction'),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
