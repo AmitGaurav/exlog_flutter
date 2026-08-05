@@ -20,6 +20,14 @@ class PendingSmsRepositoryImpl implements PendingSmsRepository {
   final TransactionRepository _transactionRepository;
   final SmsParsingOrchestrator _orchestrator;
 
+  // Guards against overlapping processInbox() runs — e.g. the foreground
+  // poll timer firing again before a slow prior run (network latency, a
+  // large unprocessed backlog) has finished. Without this, two concurrent
+  // runs could both see the same androidSmsInbox doc as "unprocessed" and
+  // both pass the transactionReference dedup check before either has
+  // written the resulting pendingSmsTransactions doc, creating a duplicate.
+  bool _isProcessingInbox = false;
+
   PendingSmsRepositoryImpl({
     required FirebaseFirestore firestore,
     required FirebaseAuth auth,
@@ -68,6 +76,16 @@ class PendingSmsRepositoryImpl implements PendingSmsRepository {
 
   @override
   Future<void> processInbox() async {
+    if (_isProcessingInbox) return;
+    _isProcessingInbox = true;
+    try {
+      await _processInbox();
+    } finally {
+      _isProcessingInbox = false;
+    }
+  }
+
+  Future<void> _processInbox() async {
     final auth = _auth.currentUser;
     if (auth == null) return;
 
