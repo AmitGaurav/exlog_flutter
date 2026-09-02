@@ -13,7 +13,6 @@ import '../../bloc/transaction_type_bloc.dart';
 import '../../bloc/user_profile_bloc.dart';
 import '../../bloc/user_profile_event.dart';
 import '../../bloc/user_profile_state.dart';
-import '../../widgets/buy_me_a_coffee_sheet.dart';
 import '../../widgets/free_tier_upgrade_sheet.dart';
 import '../../widgets/sms_auto_detect_row.dart';
 import '../admin_dashboard_page.dart';
@@ -306,22 +305,22 @@ class _SubscriptionRow extends StatelessWidget {
     return ValueListenableBuilder<bool>(
       valueListenable: sl<AppConfigService>().freeForAll,
       builder: (context, freeForAll, _) {
-        final showCoffeeAppeal = !isPremium && freeForAll;
+        final isFreeApp = !isPremium && freeForAll;
+        final tappable = !isPremium && !freeForAll;
         return Container(
           decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: isPremium
+              onTap: !tappable
                   ? null
                   : () async {
                       await showModalBottomSheet<void>(
                         context: context,
                         isScrollControlled: true,
                         backgroundColor: Colors.transparent,
-                        builder: (_) =>
-                            showCoffeeAppeal ? const BuyMeACoffeeSheet() : const FreeTierUpgradeSheet(),
+                        builder: (_) => const FreeTierUpgradeSheet(),
                       );
                       // Refresh on close (harmless if no purchase happened) so a
                       // successful purchase's server-written premiumTier shows up
@@ -335,7 +334,7 @@ class _SubscriptionRow extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(
-                      showCoffeeAppeal ? Icons.favorite_border : Icons.workspace_premium,
+                      isFreeApp ? Icons.favorite_border : Icons.workspace_premium,
                       color: const Color(0xFFFFCC00),
                       size: 26,
                     ),
@@ -347,24 +346,22 @@ class _SubscriptionRow extends StatelessWidget {
                           Text(
                             isPremium
                                 ? '${profile!.premiumTier.displayName} Active'
-                                : (showCoffeeAppeal ? 'ExLog is Free' : 'Upgrade to Premium'),
+                                : (isFreeApp ? 'ExLog is Free' : 'Upgrade to Premium'),
                             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
                           ),
                           Text(
                             isPremium
                                 ? 'Full access to all features'
-                                : (showCoffeeAppeal
-                                    ? 'No limits. Enjoying it? Buy me a coffee ☕'
+                                : (isFreeApp
+                                    ? 'No subscriptions, no limits'
                                     : 'Unlock unlimited imports, exports & more'),
                             style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
                           ),
                         ],
                       ),
                     ),
-                    Icon(
-                      isPremium ? Icons.check_circle : Icons.chevron_right,
-                      color: isPremium ? AppColors.income : AppColors.textTertiary,
-                    ),
+                    if (tappable) const Icon(Icons.chevron_right, color: AppColors.textTertiary),
+                    if (isPremium) const Icon(Icons.check_circle, color: AppColors.income),
                   ],
                 ),
               ),

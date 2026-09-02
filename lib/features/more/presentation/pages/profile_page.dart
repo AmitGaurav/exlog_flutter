@@ -9,7 +9,6 @@ import '../../domain/entities/user_profile.dart';
 import '../bloc/user_profile_bloc.dart';
 import '../bloc/user_profile_event.dart';
 import '../bloc/user_profile_state.dart';
-import '../widgets/buy_me_a_coffee_sheet.dart';
 import '../widgets/free_tier_upgrade_sheet.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -188,7 +187,23 @@ class _FreeAppContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Padding(
       padding: EdgeInsets.all(16),
-      child: BuyMeACoffeeContent(),
+      child: Row(
+        children: [
+          Icon(Icons.favorite_border, color: Color(0xFFFFCC00), size: 32),
+          SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('ExLog is free for everyone',
+                    style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                Text('No subscriptions, no limits',
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
