@@ -70,13 +70,3 @@ android {
 flutter {
     source = "../.."
 }
-
-dependencies {
-    // Explicit compile-time deps so SmsReceiver.kt can call Firestore/Auth
-    // directly (a BroadcastReceiver may run without a live FlutterEngine, so
-    // it can't rely on cloud_firestore/firebase_auth's plugin-internal
-    // transitive visibility, which is implementation-only by default).
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-    implementation("com.google.firebase:firebase-firestore-ktx")
-    implementation("com.google.firebase:firebase-auth-ktx")
-}

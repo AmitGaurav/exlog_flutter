@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,7 +12,6 @@ import '../../../more/presentation/bloc/user_profile_bloc.dart';
 import '../../../more/presentation/pages/more_page.dart';
 import '../../../reminders/presentation/bloc/reminder_bloc.dart';
 import '../../../reminders/presentation/pages/reminders_page.dart';
-import '../../../transactions/domain/repositories/pending_sms_repository.dart';
 import '../../../transactions/presentation/bloc/transaction_bloc.dart';
 import '../../../transactions/presentation/pages/transactions_page.dart';
 
@@ -25,49 +22,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
+class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
-  Timer? _smsPollTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    // Android SMS auto-detect: process any newly-arrived inbox entries on
-    // cold start, whenever the app is foregrounded, and periodically while
-    // it stays open — processInbox() only picks up SMS that arrived since
-    // the last call, so without polling, an SMS received during an
-    // already-open session would sit unprocessed until the next
-    // background/foreground cycle.
-    _processInbox();
-    _startSmsPolling();
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    _smsPollTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _processInbox();
-      _startSmsPolling();
-    } else {
-      _smsPollTimer?.cancel();
-    }
-  }
-
-  void _startSmsPolling() {
-    _smsPollTimer?.cancel();
-    _smsPollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _processInbox());
-  }
-
-  void _processInbox() {
-    sl<PendingSmsRepository>().processInbox().catchError((_) {});
-  }
 
   static const List<_NavItem> _navItems = [
     _NavItem(

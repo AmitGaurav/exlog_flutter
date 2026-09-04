@@ -14,7 +14,6 @@ import '../../bloc/user_profile_bloc.dart';
 import '../../bloc/user_profile_event.dart';
 import '../../bloc/user_profile_state.dart';
 import '../../widgets/free_tier_upgrade_sheet.dart';
-import '../../widgets/sms_auto_detect_row.dart';
 import '../admin_dashboard_page.dart';
 import '../more_page.dart' show kPrivacyPolicyUrl, kTermsOfServiceUrl;
 import 'ai_sms_parser_page.dart';
@@ -118,8 +117,6 @@ class AppSettingsPage extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
-              const SmsAutoDetectRow(),
               const SizedBox(height: 20),
               _SectionHeader('Preferences'),
               _Row(
